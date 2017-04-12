@@ -1,0 +1,30 @@
+{
+    "name": "tlowdbdao",
+    "version": "0.0.0",
+    "description": "DAO lib to store in file for rapid Prototyping",
+    "main": "index.js",
+    "scripts": {
+        "test": "node test/test.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/TobiasNickel/tlowdbdao.git"
+    },
+    "keywords": [
+        "dao",
+        "db",
+        "data",
+        "prototyping",
+        "rapid",
+        "development"
+    ],
+    "author": "Tobias Nickel",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/TobiasNickel/tlowdbdao/issues"
+    },
+    "homepage": "https://github.com/TobiasNickel/tlowdbdao#readme",
+    "dependencies": {
+        "lowdb": "^0.16.0"
+    }
+}
