@@ -1,4 +1,4 @@
-var tdao = require('../index');
+var tdao = require('../index', { format: function(data) { return JSON.stringify(data, null, '  '); } });
 
 var db = tdao({ path: __dirname + '/testdb.json' });
 

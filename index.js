@@ -19,9 +19,9 @@ module.exports = function(params) {
             if (!Array.isArray(value)) value = [value];
             const filter = {};
             filter[fieldName] = value;
-            return Promise.resolve(database.db.get(tableName).filter(function(item) {
+            return Promise.resolve(clone(database.db.get(tableName).filter(function(item) {
                 return value.indexOf(item[fieldName]) !== -1;
-            }).value());
+            }).value()));
         },
 
         getOneBy: function(tableName, fieldName, value /*, order */ ) {
@@ -35,7 +35,7 @@ module.exports = function(params) {
             if (page) {
                 collection.slice(page * pageSize, page * pageSize + pageSize)
             }
-            return Promise.resolve(collection.value());
+            return Promise.resolve(clone(collection.value()));
         },
 
         remove: function() {},
@@ -85,7 +85,13 @@ module.exports = function(params) {
             dao.insert = function(object) {
                 console.assert(typeof object === 'object', 'object need to be an object')
                 console.log('insert', object);
-                database.db.get(tableName).push(object).write();
+                var copy = clone(object);
+                for (var i in copy) {
+                    if (typeof copy[i] == 'object') {
+                        delete copy[i];
+                    }
+                }
+                database.db.get(tableName).push(copy).write();
                 return Promise.resolve();
             };
 
@@ -96,6 +102,12 @@ module.exports = function(params) {
             };
             dao.saveOne = function(obj) {
                 var search = {};
+                var copy = JSON.parse(JSON.stringify(obj));
+                for (var i in copy) {
+                    if (typeof copy[i] == 'object') {
+                        delete copy[i];
+                    }
+                }
                 IDKeys.forEach(function(key) {
                     search[key] = obj[key];
                 });
@@ -112,7 +124,7 @@ module.exports = function(params) {
             dao.getAll = function() {
                 var all = database.db.get(tableName).value() || [];
                 console.log('getAll', all)
-                return Promise.resolve(all);
+                return Promise.resolve(clone(all));
             }
             dao.findWhere = function(obj, page, pageSize) {
                 var promise = database.where(tableName, obj, page, pageSize);
@@ -123,7 +135,7 @@ module.exports = function(params) {
                 return dao.promiseMap(promise);
             };
             dao.where = function(where, params, page, pageSize, connection) {
-                var promise = database.db.where(tableName, where, params, page, pageSize, connection);
+                var promise = database.db.where(tableName, where, params, page, pageSize, connection).value();
                 return dao.promiseMap(promise);
             };
             dao.oneWhere = function(where, params, page, pageSize, connection) {
@@ -152,14 +164,14 @@ module.exports = function(params) {
                 dao['getBy' + addName] = function(value /*, page, pageSize, connection*/ ) {
                     var valueFilter = filterCreator(value);
                     var result = database.db.get(tableName).filter(valueFilter).value();
-                    var promise = Promise.resolve(result);
+                    var promise = Promise.resolve(clone(result));
                     //var promise = this.db.getBy(tableName, name, value, page, pageSize, connection);
                     return promise; //dao.promiseMap(promise);
                 };
 
                 dao['getOneBy' + addName] = function(value) {
                     var valueFilter = filterCreator(value);
-                    return first(this['getBy' + addName](value));
+                    return first(this['getBy' + addName](clone(value)));
                 };
 
                 dao['removeBy' + addName] = function(value, connection) {
@@ -195,4 +207,8 @@ function not(f) {
     return function(v) {
         return !f(v)
     }
+}
+
+function clone(data) {
+    return JSON.parse(JSON.stringify(data))
 }
